@@ -93,6 +93,10 @@
   .actions { margin-top: 22px; }
   .error { color: var(--red); font-weight: 600; margin: 12px 0 0; }
   .note { color: var(--muted); font-size: 15px; margin: 12px 0 0; }
+  #thanks { margin-top: 22px; padding: 18px 20px; background: var(--wash); border-radius: 3px; }
+  #thanks h3 { margin: 0 0 6px; font-size: 19px; color: var(--head); }
+  #thanks p { margin: 0; }
+  button:disabled { opacity: 0.6; cursor: progress; }
   #sendPanel { margin-top: 22px; padding: 18px 20px; background: var(--wash); border-radius: 3px; }
   #sendPanel h3 { margin: 0 0 6px; font-size: 19px; color: var(--head); }
   #sendPanel p { margin: 0; }
@@ -144,6 +148,10 @@
     <button type="button" id="prepare">Prepare my answers</button>
     <p class="error" id="err" role="alert" hidden></p>
   </div>
+  <div id="thanks" hidden tabindex="-1">
+    <h3>Thank you! Your answers were submitted.</h3>
+    <p>We’ll send your $50 gift card to <strong id="thanksEmail"></strong>.</p>
+  </div>
   <div id="sendPanel" hidden tabindex="-1">
     <h3>Your answers are ready</h3>
     <p>Open your email app to send them to xunzhao@virginia.edu, then press send.</p>
@@ -163,6 +171,9 @@
 <script>
   // Plays project-video.mp4 when it sits next to this page; otherwise shows a placeholder.
   const VIDEO_SRC = "project-video.mp4";
+  // Paste your Google Apps Script web app URL here (it ends with /exec) to submit answers automatically.
+  // Leave it empty to fall back to sending answers by email.
+  const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbxgzhROJG8Fa4k6dbc_24dr9f_xPsEJQUxz66whXhN629UY62vAtCP69xoXdn_PuNxu/exec";
   const TO = "xunzhao@virginia.edu";
   const QUESTIONS = [
     { q: "How easy is it for your patients to see a dermatologist?", type: "scale", ends: ["Very difficult", "Very easy"] },
@@ -276,7 +287,15 @@
     });
     return lines.join("\n");
   }
-  document.getElementById("prepare").addEventListener("click", () => {
+  const prepareBtn = document.getElementById("prepare");
+  const BTN_LABEL = SUBMIT_URL ? "Submit my answers" : "Prepare my answers";
+  prepareBtn.textContent = BTN_LABEL;
+  function showEmailPanel(d, text) {
+    document.getElementById("answersText").value = text;
+    document.getElementById("mailLink").href = "mailto:" + TO + "?subject=" + encodeURIComponent("Clinician survey response – " + d.details.name) + "&body=" + encodeURIComponent(text);
+    panel.hidden = false; panel.focus();
+  }
+  prepareBtn.addEventListener("click", async () => {
     const d = collect(), missing = [];
     QUESTIONS.forEach((item, i) => {
       const v = d.answers["q" + (i + 1)], empty = Array.isArray(v) ? v.length === 0 : !v;
@@ -298,9 +317,25 @@
     }
     err.hidden = true;
     const text = buildText(d);
-    document.getElementById("answersText").value = text;
-    document.getElementById("mailLink").href = "mailto:" + TO + "?subject=" + encodeURIComponent("Clinician survey response – " + d.details.name) + "&body=" + encodeURIComponent(text);
-    panel.hidden = false; panel.focus();
+    if (SUBMIT_URL) {
+      prepareBtn.disabled = true; prepareBtn.textContent = "Submitting…";
+      try {
+        // text/plain body keeps this a simple request (no CORS preflight) for Apps Script
+        const res = await fetch(SUBMIT_URL, { method: "POST", body: JSON.stringify({ answers: d.answers, details: d.details, text }) });
+        const out = await res.json();
+        if (!out || !out.ok) throw new Error((out && out.error) || "Submission failed");
+        document.getElementById("thanksEmail").textContent = d.details.email;
+        document.querySelector(".actions").hidden = true;
+        const th = document.getElementById("thanks"); th.hidden = false; th.focus();
+        try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+        return;
+      } catch (e) {
+        prepareBtn.disabled = false; prepareBtn.textContent = BTN_LABEL;
+        err.textContent = "Your answers couldn’t be submitted automatically. Please send them by email below.";
+        err.hidden = false;
+      }
+    }
+    showEmailPanel(d, text);
   });
   document.getElementById("copyBtn").addEventListener("click", async () => {
     const ta = document.getElementById("answersText"), note = document.getElementById("copyNote");
