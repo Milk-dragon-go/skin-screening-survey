@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clinician Survey – Autonomous Skin Cancer Screening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* UVA palette: Jefferson Blue #232D4B, Rotunda Orange #E57200, neutrals #F1F1EF / #DADADA / #666666 */
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --bg: #FFFFFF; --ink: #262A33; --head: #232D4B; --muted: #666666; --rule: #DADADA;
+    --band: #232D4B; --band-ink: #FFFFFF; --orange: #E57200; --on-orange: #232D4B;
+    --num: #E57200; --btn: #232D4B; --btn-ink: #FFFFFF; --stage: #232D4B; --wash: #F1F1EF;
+    --red: #B3261E; --check: #232D4B;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #121828; --ink: #E6E8EE; --head: #F1F1EF; --muted: #A9AFBD; --rule: #2F3850;
+      --band: #1A2238; --band-ink: #FFFFFF; --orange: #E57200; --on-orange: #141E3C;
+      --num: #F08A2E; --btn: #E57200; --btn-ink: #141E3C; --stage: #0C1120; --wash: #1A2238;
+      --red: #FF8A80; --check: #F08A2E;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121828; --ink: #E6E8EE; --head: #F1F1EF; --muted: #A9AFBD; --rule: #2F3850;
+    --band: #1A2238; --band-ink: #FFFFFF; --orange: #E57200; --on-orange: #141E3C;
+    --num: #F08A2E; --btn: #E57200; --btn-ink: #141E3C; --stage: #0C1120; --wash: #1A2238;
+    --red: #FF8A80; --check: #F08A2E;
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Libre Franklin", Arial, Helvetica, sans-serif; font-size: 17px; line-height: 1.55; }
+  img, video { max-width: 100%; display: block; }
+  a { color: inherit; text-underline-offset: 3px; }
+  :focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+  .wrap { max-width: 700px; margin: 0 auto; padding: 0 22px; }
+
+  header { background: var(--band); color: var(--band-ink); }
+  header .wrap { padding-top: 36px; padding-bottom: 30px; }
+  h1 { margin: 0; font-size: clamp(28px, 6vw, 42px); line-height: 1.1; font-weight: 800; letter-spacing: -0.015em; }
+  header p { margin: 10px 0 0; opacity: 0.88; }
+
+  .notice { background: var(--orange); color: var(--on-orange); }
+  .notice .wrap { padding-top: 20px; padding-bottom: 22px; }
+  .notice p { margin: 0; font-size: 19px; line-height: 1.45; }
+  .notice p.must { font-weight: 800; }
+  .notice p + p { margin-top: 8px; font-weight: 600; }
+
+  h2 { display: flex; align-items: baseline; gap: 12px; margin: 44px 0 16px; font-size: 25px; line-height: 1.2; font-weight: 800; color: var(--head); }
+  h2 .n { color: var(--num); font-size: 30px; }
+
+  .stage { width: 100%; aspect-ratio: 16 / 9; background: var(--stage); display: grid; place-items: center; color: #FFFFFF; border-radius: 3px; overflow: hidden; }
+  .stage video { width: 100%; height: 100%; background: #000; }
+  .stage .soon { text-align: center; }
+  .stage .soon svg { width: 62px; height: 62px; margin: 0 auto; display: block; }
+  .stage .soon p { margin: 10px 0 0; font-size: 16px; opacity: 0.85; }
+
+  fieldset.q { border: 0; margin: 0 0 30px; padding: 0; min-width: 0; }
+  fieldset.q legend { padding: 0; margin-bottom: 4px; font-weight: 600; font-size: 18px; color: var(--head); display: flex; gap: 10px; }
+  fieldset.q legend .qn { color: var(--num); font-weight: 800; min-width: 1.4em; }
+  .hint { margin: 0 0 8px calc(1.4em + 10px); font-size: 15px; color: var(--muted); }
+  .missing-msg { display: none; margin: 0 0 6px calc(1.4em + 10px); color: var(--red); font-size: 15px; font-weight: 600; }
+  fieldset.q.missing .missing-msg { display: block; }
+  .opts { margin-left: calc(1.4em + 10px); }
+  .opts label { display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer; }
+  .opts input { width: 20px; height: 20px; margin: 0; accent-color: var(--check); flex: none; }
+  .scale { display: flex; gap: 6px; max-width: 420px; }
+  .scale label { flex: 1 1 0; flex-direction: column; gap: 4px; justify-content: center; font-weight: 600; }
+  .ends { display: flex; justify-content: space-between; max-width: 420px; font-size: 14px; color: var(--muted); margin-top: 2px; }
+  textarea, input[type="text"], input[type="email"], select {
+    width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 3px; padding: 10px 12px; min-height: 46px;
+  }
+  textarea { min-height: 100px; resize: vertical; }
+
+  .details { display: grid; gap: 16px; }
+  .details label { display: block; font-weight: 600; color: var(--head); margin-bottom: 6px; }
+  .details .opt { font-weight: 400; color: var(--muted); }
+  .details .bad input { border-color: var(--red); }
+  .gift { margin: 0 0 18px; }
+  .gift b { color: var(--num); }
+
+  button, .btn { font: inherit; font-weight: 600; font-size: 17px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; border-radius: 4px; border: 0; background: var(--btn); color: var(--btn-ink); text-decoration: none; }
+  .secondary { background: transparent; color: var(--head); border: 1px solid var(--head); }
+  .actions { margin-top: 22px; }
+  .error { color: var(--red); font-weight: 600; margin: 12px 0 0; }
+  .note { color: var(--muted); font-size: 15px; margin: 12px 0 0; }
+  #sendPanel { margin-top: 22px; padding: 18px 20px; background: var(--wash); border-radius: 3px; }
+  #sendPanel h3 { margin: 0 0 6px; font-size: 19px; color: var(--head); }
+  #sendPanel p { margin: 0; }
+  #sendPanel .row { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
+  #answersText { margin-top: 12px; min-height: 150px; font-size: 14px; }
+
+  footer { margin-top: 48px; border-top: 1px solid var(--rule); }
+  footer .wrap { padding-top: 20px; padding-bottom: 38px; color: var(--muted); font-size: 16px; }
+  footer a { color: var(--head); font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Clinician Survey: Autonomous Skin Cancer Screening</h1>
+    <p>University of Virginia</p>
+  </div>
+</header>
+
+<div class="notice" role="note">
+  <div class="wrap">
+    <p class="must">Before you fill out this survey, please email <a href="mailto:xunzhao@virginia.edu?subject=Clinician%20survey%3A%20confirming%20my%20participation">xunzhao@virginia.edu</a> to confirm your participation.</p>
+    <p>Each participant receives a $50 gift card.</p>
+  </div>
+</div>
+
+<main class="wrap">
+  <h2><span class="n">1</span>Watch the video</h2>
+  <div class="stage" id="stage"></div>
+
+  <h2><span class="n">2</span>Answer 10 questions</h2>
+  <form id="survey" novalidate><div id="questions"></div></form>
+
+  <h2><span class="n">3</span>Send your answers</h2>
+  <p class="gift">We’ll send your <b>$50 gift card</b> to the email address you enter below.</p>
+  <div class="details">
+    <div id="f-name"><label for="name">Your name</label><input type="text" id="name" autocomplete="name"></div>
+    <div id="f-email"><label for="email">Email for your gift card</label><input type="email" id="email" autocomplete="email" inputmode="email"></div>
+    <div><label for="role">Your role <span class="opt">(optional)</span></label>
+      <select id="role">
+        <option value="">Choose one</option>
+        <option>Physician (MD/DO)</option><option>Nurse practitioner</option><option>Physician assistant</option>
+        <option>Nurse</option><option>Medical assistant</option><option>Other</option>
+      </select>
+    </div>
+    <div><label for="clinic">Clinic or FQHC name <span class="opt">(optional)</span></label><input type="text" id="clinic" autocomplete="organization"></div>
+  </div>
+  <div class="actions">
+    <button type="button" id="prepare">Prepare my answers</button>
+    <p class="error" id="err" role="alert" hidden></p>
+  </div>
+  <div id="sendPanel" hidden tabindex="-1">
+    <h3>Your answers are ready</h3>
+    <p>Open your email app to send them to xunzhao@virginia.edu, then press send.</p>
+    <div class="row">
+      <a class="btn" id="mailLink" href="#" target="_blank" rel="noopener">Open email with my answers</a>
+      <button type="button" class="secondary" id="copyBtn">Copy my answers</button>
+    </div>
+    <p class="note" id="copyNote">If your email app doesn’t open, copy your answers and email them to xunzhao@virginia.edu.</p>
+    <textarea id="answersText" readonly aria-label="Your answers"></textarea>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">Contact information: <a href="mailto:xunzhao@virginia.edu">xunzhao@virginia.edu</a></div>
+</footer>
+
+<script>
+  // Plays project-video.mp4 when it sits next to this page; otherwise shows a placeholder.
+  const VIDEO_SRC = "project-video.mp4";
+  const TO = "xunzhao@virginia.edu";
+  const QUESTIONS = [
+    { q: "How easy is it for your patients to see a dermatologist?", type: "scale", ends: ["Very difficult", "Very easy"] },
+    { q: "How useful would this system be for your patients?", type: "scale", ends: ["Not useful", "Very useful"] },
+    { q: "Would you be willing to use this system in your clinic?", type: "one", options: ["Yes", "Maybe", "No"] },
+    { q: "How much would you trust the system’s screening results?", type: "scale", ends: ["Not at all", "Completely"] },
+    { q: "What evidence would you need before relying on it?", type: "many", options: ["Accuracy data (sensitivity / specificity)", "FDA clearance", "Peer-reviewed studies", "Pilot results in clinics like mine", "Dermatologist endorsement", "Other"] },
+    { q: "What are your biggest concerns about this system?", type: "many", options: ["Accuracy / missed cancers", "Performance across skin tones", "Time and workflow", "Cost and reimbursement", "Liability", "Patient comfort and safety", "Data privacy", "Other"] },
+    { q: "Would your patients be comfortable with a robotic scan?", type: "scale", ends: ["Not at all", "Very comfortable"] },
+    { q: "Who in your clinic would ideally run the scan?", type: "one", options: ["Physician", "NP / PA", "Nurse / MA", "Technician", "Other"] },
+    { q: "How long could a scan take and still fit your workflow?", type: "one", options: ["Under 5 minutes", "5–10 minutes", "10–20 minutes", "Over 20 minutes"] },
+    { q: "What would make this system more useful to you?", type: "text", optional: true },
+  ];
+  const STORE_KEY = "uva-clinician-survey-draft-v2";
+
+  // ---------- video ----------
+  const stage = document.getElementById("stage");
+  function placeholder() {
+    stage.innerHTML = '<div class="soon"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#FFFFFF"/><path d="M26 20 L46 32 L26 44 Z" fill="#232D4B"/></svg><p>Video coming soon</p></div>';
+  }
+  if (VIDEO_SRC) {
+    const v = document.createElement("video");
+    v.controls = true; v.playsInline = true; v.preload = "metadata";
+    v.setAttribute("aria-label", "Project introduction video");
+    v.addEventListener("error", placeholder, { once: true });
+    v.src = VIDEO_SRC;
+    stage.appendChild(v);
+  } else placeholder();
+
+  // ---------- questions ----------
+  const qWrap = document.getElementById("questions");
+  QUESTIONS.forEach((item, i) => {
+    const n = i + 1, name = "q" + n;
+    const fs = document.createElement("fieldset"); fs.className = "q"; fs.id = "fs-" + n;
+    const lg = document.createElement("legend");
+    const qn = document.createElement("span"); qn.className = "qn"; qn.textContent = n;
+    const qt = document.createElement("span"); qt.textContent = item.q;
+    lg.append(qn, qt); fs.appendChild(lg);
+    const hint = document.createElement("p"); hint.className = "hint";
+    hint.textContent = item.type === "scale" ? "Choose 1–5" : item.type === "many" ? "Select all that apply" : item.type === "text" ? "Optional" : "Choose one";
+    fs.appendChild(hint);
+    const miss = document.createElement("p"); miss.className = "missing-msg"; miss.textContent = "Please answer this question."; fs.appendChild(miss);
+    const opts = document.createElement("div"); opts.className = "opts";
+    if (item.type === "text") {
+      const ta = document.createElement("textarea"); ta.id = name; ta.name = name; ta.setAttribute("aria-label", item.q);
+      opts.appendChild(ta);
+    } else if (item.type === "scale") {
+      const row = document.createElement("div"); row.className = "scale";
+      ["1", "2", "3", "4", "5"].forEach(val => {
+        const lab = document.createElement("label");
+        const inp = document.createElement("input"); inp.type = "radio"; inp.name = name; inp.value = val;
+        const sp = document.createElement("span"); sp.textContent = val;
+        lab.append(inp, sp); row.appendChild(lab);
+      });
+      const ends = document.createElement("div"); ends.className = "ends";
+      const a = document.createElement("span"); a.textContent = "1 = " + item.ends[0];
+      const b = document.createElement("span"); b.textContent = "5 = " + item.ends[1];
+      ends.append(a, b);
+      opts.append(row, ends);
+    } else {
+      item.options.forEach(o => {
+        const lab = document.createElement("label");
+        const inp = document.createElement("input"); inp.type = item.type === "many" ? "checkbox" : "radio"; inp.name = name; inp.value = o;
+        const sp = document.createElement("span"); sp.textContent = o;
+        lab.append(inp, sp); opts.appendChild(lab);
+      });
+    }
+    fs.appendChild(opts);
+    qWrap.appendChild(fs);
+  });
+
+  // ---------- draft save / restore (this browser only) ----------
+  const fields = ["name", "email", "role", "clinic"];
+  function collect() {
+    const d = { answers: {}, details: {} };
+    QUESTIONS.forEach((item, i) => {
+      const name = "q" + (i + 1);
+      if (item.type === "text") d.answers[name] = document.getElementById(name).value.trim();
+      else if (item.type === "many") d.answers[name] = [...document.querySelectorAll('input[name="' + name + '"]:checked')].map(x => x.value);
+      else { const c = document.querySelector('input[name="' + name + '"]:checked'); d.answers[name] = c ? c.value : ""; }
+    });
+    fields.forEach(f => d.details[f] = document.getElementById(f).value.trim());
+    return d;
+  }
+  function saveDraft() { try { localStorage.setItem(STORE_KEY, JSON.stringify(collect())); } catch (e) {} }
+  (function restore() {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch (e) { d = null; }
+    if (!d) return;
+    QUESTIONS.forEach((item, i) => {
+      const name = "q" + (i + 1), v = d.answers && d.answers[name];
+      if (v == null) return;
+      if (item.type === "text") document.getElementById(name).value = v;
+      else (Array.isArray(v) ? v : [v]).forEach(val => document.querySelectorAll('input[name="' + name + '"]').forEach(inp => { if (inp.value === val) inp.checked = true; }));
+    });
+    fields.forEach(f => { if (d.details && d.details[f]) document.getElementById(f).value = d.details[f]; });
+  })();
+  document.addEventListener("change", e => { saveDraft(); const fs = e.target.closest && e.target.closest("fieldset.q"); if (fs) fs.classList.remove("missing"); });
+  document.addEventListener("input", saveDraft);
+
+  // ---------- prepare & send ----------
+  const err = document.getElementById("err"), panel = document.getElementById("sendPanel");
+  function buildText(d) {
+    const lines = ["Clinician survey response", "", "Name: " + d.details.name, "Email: " + d.details.email,
+      "Role: " + (d.details.role || "-"), "Clinic: " + (d.details.clinic || "-"), ""];
+    QUESTIONS.forEach((item, i) => {
+      const v = d.answers["q" + (i + 1)];
+      let ans = Array.isArray(v) ? (v.length ? v.join("; ") : "-") : (v || "-");
+      if (item.type === "scale" && v) ans += " (1 = " + item.ends[0] + ", 5 = " + item.ends[1] + ")";
+      lines.push((i + 1) + ". " + item.q, "   " + ans);
+    });
+    return lines.join("\n");
+  }
+  document.getElementById("prepare").addEventListener("click", () => {
+    const d = collect(), missing = [];
+    QUESTIONS.forEach((item, i) => {
+      const v = d.answers["q" + (i + 1)], empty = Array.isArray(v) ? v.length === 0 : !v;
+      const fs = document.getElementById("fs-" + (i + 1));
+      if (!item.optional && empty) { missing.push(i + 1); fs.classList.add("missing"); } else fs.classList.remove("missing");
+    });
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.details.email);
+    document.getElementById("f-name").classList.toggle("bad", !d.details.name);
+    document.getElementById("f-email").classList.toggle("bad", !emailOk);
+    const problems = [];
+    if (missing.length) problems.push("Please answer question" + (missing.length > 1 ? "s " : " ") + missing.join(", ") + ".");
+    if (!d.details.name) problems.push("Enter your name.");
+    if (!emailOk) problems.push("Enter a valid email so we can send your gift card.");
+    if (problems.length) {
+      err.textContent = problems.join(" "); err.hidden = false; panel.hidden = true;
+      const first = missing.length ? document.getElementById("fs-" + missing[0]) : document.getElementById(!d.details.name ? "name" : "email");
+      first.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+      return;
+    }
+    err.hidden = true;
+    const text = buildText(d);
+    document.getElementById("answersText").value = text;
+    document.getElementById("mailLink").href = "mailto:" + TO + "?subject=" + encodeURIComponent("Clinician survey response – " + d.details.name) + "&body=" + encodeURIComponent(text);
+    panel.hidden = false; panel.focus();
+  });
+  document.getElementById("copyBtn").addEventListener("click", async () => {
+    const ta = document.getElementById("answersText"), note = document.getElementById("copyNote");
+    let ok = false;
+    try { await navigator.clipboard.writeText(ta.value); ok = true; } catch (e) { try { ta.select(); ok = document.execCommand("copy"); } catch (e2) { ok = false; } }
+    note.textContent = ok ? "Copied. Paste your answers into an email to xunzhao@virginia.edu." : "Select the text below, copy it, and email it to xunzhao@virginia.edu.";
+  });
+</script>
+</body>
+</html>
