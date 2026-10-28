@@ -84,7 +84,7 @@
   .details { display: grid; gap: 16px; }
   .details label { display: block; font-weight: 600; color: var(--head); margin-bottom: 6px; }
   .details .opt { font-weight: 400; color: var(--muted); }
-  .details .bad input { border-color: var(--red); }
+  .details .bad input, .details .bad select { border-color: var(--red); }
   .gift { margin: 0 0 18px; }
   .gift b { color: var(--num); }
 
@@ -131,18 +131,18 @@
   <form id="survey" novalidate><div id="questions"></div></form>
 
   <h2><span class="n">3</span>Send your answers</h2>
-  <p class="gift">We’ll send your <b>$50 gift card</b> to the email address you enter below.</p>
+  <p class="gift">Before you fill out this survey, please email <a href="mailto:xunzhao@virginia.edu?subject=Clinician%20survey%3A%20confirming%20my%20participation">xunzhao@virginia.edu</a> to confirm your participation. After confirmation, you will receive a <b>$50 gift card</b> for your participation.</p>
   <div class="details">
     <div id="f-name"><label for="name">Your name</label><input type="text" id="name" autocomplete="name"></div>
     <div id="f-email"><label for="email">Email for your gift card</label><input type="email" id="email" autocomplete="email" inputmode="email"></div>
-    <div><label for="role">Your role <span class="opt">(optional)</span></label>
+    <div id="f-role"><label for="role">Your role</label>
       <select id="role">
         <option value="">Choose one</option>
         <option>Physician (MD/DO)</option><option>Nurse practitioner</option><option>Physician assistant</option>
         <option>Nurse</option><option>Medical assistant</option><option>Other</option>
       </select>
     </div>
-    <div><label for="clinic">Clinic or FQHC name <span class="opt">(optional)</span></label><input type="text" id="clinic" autocomplete="organization"></div>
+    <div id="f-clinic"><label for="clinic">Clinic or FQHC name</label><input type="text" id="clinic" autocomplete="organization"></div>
   </div>
   <div class="actions">
     <button type="button" id="prepare">Prepare my answers</button>
@@ -185,7 +185,7 @@
     { q: "Would your patients be comfortable with a robotic scan?", type: "scale", ends: ["Not at all", "Very comfortable"] },
     { q: "Who in your clinic would ideally run the scan?", type: "one", options: ["Physician", "NP / PA", "Nurse / MA", "Technician", "Other"] },
     { q: "How long could a scan take and still fit your workflow?", type: "one", options: ["Under 5 minutes", "5–10 minutes", "10–20 minutes", "Over 20 minutes"] },
-    { q: "What would make this system more useful to you?", type: "text", optional: true },
+    { q: "What do you think of the feasibility of this system? Would you welcome such a device, and what else should we consider to promote its adoption?", type: "text" },
   ];
   const STORE_KEY = "uva-clinician-survey-draft-v2";
 
@@ -213,7 +213,7 @@
     const qt = document.createElement("span"); qt.textContent = item.q;
     lg.append(qn, qt); fs.appendChild(lg);
     const hint = document.createElement("p"); hint.className = "hint";
-    hint.textContent = item.type === "scale" ? "Choose 1–5" : item.type === "many" ? "Select all that apply" : item.type === "text" ? "Optional" : "Choose one";
+    hint.textContent = item.type === "scale" ? "Choose 1–5" : item.type === "many" ? "Select all that apply" : item.type === "text" ? "Open-ended" : "Choose one";
     fs.appendChild(hint);
     const miss = document.createElement("p"); miss.className = "missing-msg"; miss.textContent = "Please answer this question."; fs.appendChild(miss);
     const opts = document.createElement("div"); opts.className = "opts";
@@ -305,13 +305,18 @@
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.details.email);
     document.getElementById("f-name").classList.toggle("bad", !d.details.name);
     document.getElementById("f-email").classList.toggle("bad", !emailOk);
+    document.getElementById("f-role").classList.toggle("bad", !d.details.role);
+    document.getElementById("f-clinic").classList.toggle("bad", !d.details.clinic);
     const problems = [];
     if (missing.length) problems.push("Please answer question" + (missing.length > 1 ? "s " : " ") + missing.join(", ") + ".");
     if (!d.details.name) problems.push("Enter your name.");
     if (!emailOk) problems.push("Enter a valid email so we can send your gift card.");
+    if (!d.details.role) problems.push("Choose your role.");
+    if (!d.details.clinic) problems.push("Enter your clinic or FQHC name.");
     if (problems.length) {
       err.textContent = problems.join(" "); err.hidden = false; panel.hidden = true;
-      const first = missing.length ? document.getElementById("fs-" + missing[0]) : document.getElementById(!d.details.name ? "name" : "email");
+      const firstField = !d.details.name ? "name" : !emailOk ? "email" : !d.details.role ? "role" : "clinic";
+      const first = missing.length ? document.getElementById("fs-" + missing[0]) : document.getElementById(firstField);
       first.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
       return;
     }
